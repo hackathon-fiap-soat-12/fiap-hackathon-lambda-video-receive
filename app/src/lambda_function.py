@@ -6,17 +6,12 @@ from aws_lambda_powertools import Logger, Tracer, Metrics
 from aws_lambda_powertools.metrics import MetricUnit
 
 logger = Logger(service=os.getenv('OTEL_SERVICE_NAME', 'default_service_name'))
-# tracer = Tracer()
-# metrics = Metrics(namespace="VideoProcessing")
 
 sqs = boto3.client('sqs')
 
 
 @logger.inject_lambda_context
-# @tracer.capture_lambda_handler
-# @metrics.log_metrics
 def lambda_handler(event, context):
-    # Extract bucket and key from S3 event
     bucket = event['Records'][0]['s3']['bucket']['name']
     key = event['Records'][0]['s3']['object']['key']
 
@@ -39,7 +34,6 @@ def lambda_handler(event, context):
         )
 
         logger.info("Message sent to SQS", extra={"message_id": response['MessageId']})
-        # metrics.add_metric(name="FilesProcessed", unit=MetricUnit.Count, value=1)
 
         return {
             'statusCode': 200,
