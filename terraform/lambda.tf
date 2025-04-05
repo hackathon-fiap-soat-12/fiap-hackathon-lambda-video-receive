@@ -22,7 +22,7 @@ resource "aws_lambda_function" "video_receive_lambda" {
   description   = "FIAP Hackathon - Lambda Video Receive Security Group"
   role          = data.aws_iam_role.lab_role.arn
   handler       = "lambda_function.lambda_handler"
-  runtime       = "python3.9"
+  runtime       = "python3.12"
   filename      = "../bin/bootstrap.zip"
 
   vpc_config {
@@ -38,12 +38,13 @@ resource "aws_lambda_function" "video_receive_lambda" {
     variables = {
       "SQS_QUEUE_URL"               = data.aws_sqs_queue.video-create-queue.url
       "OTEL_SERVICE_NAME"           = "video-receive-lambda"
-      "OTEL_EXPORTER_OTLP_ENDPOINT" = "http://alloy.monitoring:4318"
+      "OTEL_EXPORTER_OTLP_ENDPOINT" = "${data.aws_lb.nlb.dns_name}/alloy"
       "OTEL_EXPORTER_OTLP_PROTOCOL" = "http/protobuf"
       "OTEL_LOGS_EXPORTER"          = "otlp"
       "OTEL_TRACES_EXPORTER"        = "otlp"
       "OTEL_METRICS_EXPORTER"       = "none"
       "OTEL_LOG_LEVEL"              = "INFO"
+      "OTEL_PROPAGATORS"            = "tracecontext"
       "AWS_LAMBDA_EXEC_WRAPPER"     = "/opt/otel-instrument"
     }
   }
@@ -63,7 +64,7 @@ resource "aws_s3_bucket_notification" "bucket_notification" {
   lambda_function {
     lambda_function_arn = aws_lambda_function.video_receive_lambda.arn
     events = ["s3:ObjectCreated:*"]
-    filter_prefix       = "videoFiles/"
+    filter_prefix       = "videos/"
   }
 
   depends_on = [aws_lambda_permission.allow_s3]

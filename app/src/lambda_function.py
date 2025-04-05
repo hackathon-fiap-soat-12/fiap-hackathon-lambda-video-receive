@@ -2,8 +2,7 @@ import os
 
 import boto3
 import json
-from aws_lambda_powertools import Logger, Tracer, Metrics
-from aws_lambda_powertools.metrics import MetricUnit
+from aws_lambda_powertools import Logger
 
 logger = Logger(service=os.getenv('OTEL_SERVICE_NAME', 'default_service_name'))
 
@@ -17,7 +16,7 @@ def lambda_handler(event, context):
 
     logger.info("Processing file", extra={"bucket": bucket, "key": key})
 
-    if key.startswith('videoFiles/'):
+    if key.startswith('videos/'):
         try:
             queue_url = os.environ['SQS_QUEUE_URL']
         except KeyError:
@@ -40,8 +39,8 @@ def lambda_handler(event, context):
             'body': json.dumps('Message sent to SQS')
         }
     else:
-        logger.warning("File not in videoFiles folder", extra={"key": key})
+        logger.warning("File not in videos folder", extra={"key": key})
         return {
             'statusCode': 200,
-            'body': json.dumps('File not in videoFiles folder')
+            'body': json.dumps('File not in videos folder')
         }

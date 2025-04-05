@@ -38,7 +38,7 @@ def fixture_event_from_video_file() -> dict:
                         'name': 'fake_bucket'
                     },
                     'object': {
-                        'key': 'videoFiles/fake_key'
+                        'key': 'videos/fake_key'
                     }
                 },
             }

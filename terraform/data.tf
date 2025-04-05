@@ -1,3 +1,5 @@
+data "aws_caller_identity" "current" {}
+
 data "aws_vpc" "selected_vpc" {
   filter {
     name   = "tag:Name"
@@ -33,6 +35,10 @@ data "aws_ip_ranges" "api_gateway" {
 
 data "aws_iam_role" "lab_role" {
   name = "LabRole"
+}
+
+data "aws_lb" "nlb" {
+  name = "fiap-hackathon-nlb"
 }
 
 data "aws_ssm_parameter" "video_file_store_bucket_name" {
