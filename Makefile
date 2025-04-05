@@ -1,15 +1,14 @@
-.PHONY: clean deps package
+.PHONY: clean docker-build package
 
 # Clean up previous builds
 clean:
-	rm -rf build app/bin/bootstrap.zip
+	rm -rf bin/bootstrap.zip
+	mkdir -p bin
 
-# Install dependencies
-deps:
-	mkdir -p build
-	pip install --target build -r app/src/requirements.txt
+# Build Docker image and extract zip file
+docker-build:
+	docker build -t lambda-package-builder -f Dockerfile .
 
-# Package the Lambda function
-package: clean deps
-	cp -r app/src/*.py build/
-	cd build && zip -r ../bin/bootstrap.zip .
+# Package the Lambda function using Docker
+package: clean docker-build
+	docker run --rm lambda-package-builder > bin/bootstrap.zip

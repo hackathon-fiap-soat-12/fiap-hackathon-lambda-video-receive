@@ -26,26 +26,32 @@ resource "aws_lambda_function" "video_receive_lambda" {
   filename      = "../bin/bootstrap.zip"
 
   vpc_config {
-    subnet_ids = [for subnet in data.aws_subnet.selected_subnets : subnet.id]
-    security_group_ids = [aws_security_group.lambda-sg.id]
+    subnet_ids = [
+      for subnet in data.aws_subnet.selected_subnets : subnet.id
+    ]
+    security_group_ids = [
+      aws_security_group.lambda-sg.id
+    ]
   }
 
   layers = [
-    "arn:aws:lambda:us-east-1:184161586896:layer:opentelemetry-python-0_12_0:1"
+    "arn:aws:lambda:${var.aws_region}:184161586896:layer:opentelemetry-python-0_12_0:1",
+    # "arn:aws:lambda:${var.aws_region}:184161586896:layer:opentelemetry-collector-amd64-0_13_0:1"
   ]
 
   environment {
     variables = {
-      "SQS_QUEUE_URL"               = data.aws_sqs_queue.video-create-queue.url
-      "OTEL_SERVICE_NAME"           = "video-receive-lambda"
-      "OTEL_EXPORTER_OTLP_ENDPOINT" = "${data.aws_lb.nlb.dns_name}/alloy"
-      "OTEL_EXPORTER_OTLP_PROTOCOL" = "http/protobuf"
-      "OTEL_LOGS_EXPORTER"          = "otlp"
-      "OTEL_TRACES_EXPORTER"        = "otlp"
-      "OTEL_METRICS_EXPORTER"       = "none"
-      "OTEL_LOG_LEVEL"              = "INFO"
-      "OTEL_PROPAGATORS"            = "tracecontext"
-      "AWS_LAMBDA_EXEC_WRAPPER"     = "/opt/otel-instrument"
+      "SQS_QUEUE_URL"                      = data.aws_sqs_queue.video-create-queue.url
+      "OPENTELEMETRY_COLLECTOR_CONFIG_URI" = "/var/task/collector.yaml"
+      "OTEL_SERVICE_NAME"                  = "video-receive-lambda"
+      "OTEL_EXPORTER_OTLP_ENDPOINT"        = "http://${data.aws_lb.nlb.dns_name}/alloy"
+      "OTEL_EXPORTER_OTLP_PROTOCOL"        = "http/protobuf"
+      "OTEL_LOGS_EXPORTER"                 = "otlp"
+      "OTEL_TRACES_EXPORTER"               = "otlp"
+      "OTEL_METRICS_EXPORTER"              = "none"
+      "OTEL_LOG_LEVEL"                     = "INFO"
+      "OTEL_PROPAGATORS"                   = "tracecontext"
+      "AWS_LAMBDA_EXEC_WRAPPER"            = "/opt/otel-instrument"
     }
   }
 }
@@ -63,8 +69,10 @@ resource "aws_s3_bucket_notification" "bucket_notification" {
 
   lambda_function {
     lambda_function_arn = aws_lambda_function.video_receive_lambda.arn
-    events = ["s3:ObjectCreated:*"]
     filter_prefix       = "videos/"
+    events = [
+      "s3:ObjectCreated:*"
+    ]
   }
 
   depends_on = [aws_lambda_permission.allow_s3]
