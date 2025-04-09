@@ -1,0 +1,56 @@
+name: Terraform Lambda Video Deploy to AWS
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  # Job para verificação do terraform do lambda video em pull requests e merge para a main e push da main 
+   push-lambda:
+    name: Terraform Verification and Push Lambda Video
+    runs-on: ubuntu-latest
+
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region: us-east-1
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.7.0
+
+      # Inicializar, validar e aplicar o Terraform para o diretório terraform
+      - name: Initialize Terraform for Lambda Video
+        working-directory: terraform
+        run: terraform init
+
+      - name: Validate Terraform for Lambda Video
+        working-directory: terraform
+        run: terraform validate
+
+      - name: Plan Terraform for Lambda Video
+        if: github.ref == 'refs/heads/main' # Executa apenas na branch main
+        working-directory: terraform
+        run: terraform plan -out=lambda-video
+
+      - name: Apply Terraform for Lambda Video
+        if: github.ref == 'refs/heads/main' # Executa apenas na branch main
+        working-directory: terraform
+        run: terraform apply -auto-approve lambda-video
