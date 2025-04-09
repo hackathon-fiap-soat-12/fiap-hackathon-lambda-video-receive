@@ -1,0 +1,40 @@
+receivers:
+  telemetryapi:
+
+processors:
+  batch:
+    timeout: 1s
+    send_batch_size: 1024
+  memory_limiter:
+    check_interval: 1s
+    limit_mib: 100
+    spike_limit_mib: 20
+  resourcedetection:
+    detectors: [env, aws]
+    timeout: 2s
+  resource:
+    attributes:
+      - key: service.namespace
+        value: "video-processing"
+        action: upsert
+
+exporters:
+  otlp:
+    endpoint: "${OTEL_EXPORTER_OTLP_ENDPOINT}"
+    tls:
+      insecure: true
+
+service:
+  pipelines:
+    traces:
+      receivers: [telemetryapi]
+      processors: [memory_limiter, batch, resourcedetection, resource]
+      exporters: [otlp]
+    metrics:
+      receivers: [telemetryapi]
+      processors: [memory_limiter, batch, resourcedetection, resource]
+      exporters: [otlp]
+    logs:
+      receivers: [telemetryapi]
+      processors: [memory_limiter, batch, resourcedetection, resource]
+      exporters: [otlp]
