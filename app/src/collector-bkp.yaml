@@ -1,0 +1,21 @@
+receivers:
+  telemetryapi:
+  otlp:
+    protocols:
+      grpc:
+      http:
+exporters:
+  otlphttp:
+    endpoint: ${env:OTEL_EXPORTER_OTLP_ENDPOINT}
+processors:
+  batch:
+  decouple:
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      exporters: [otlphttp]
+    logs:
+      receivers: [otlp]
+      processors: [batch,decouple]
+      exporters: [otlphttp]

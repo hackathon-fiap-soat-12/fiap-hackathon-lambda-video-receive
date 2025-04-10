@@ -10,9 +10,9 @@ resource "aws_security_group" "lambda-sg" {
   }
 
   egress {
-    from_port = 0
-    to_port   = 0
-    protocol  = "-1"
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
 }
@@ -35,25 +35,44 @@ resource "aws_lambda_function" "video_receive_lambda" {
   }
 
   layers = [
-    "arn:aws:lambda:${var.aws_region}:184161586896:layer:opentelemetry-python-0_12_0:1",
+    # "arn:aws:lambda:${var.aws_region}:901920570463:layer:aws-otel-python-amd64-ver-1-29-0:2",
+    # "arn:aws:lambda:${var.aws_region}:184161586896:layer:opentelemetry-python-0_12_0:1",
     # "arn:aws:lambda:${var.aws_region}:184161586896:layer:opentelemetry-collector-amd64-0_13_0:1"
   ]
+
+  # environment {
+  #   variables = {
+  #     "SQS_QUEUE_URL"                      = data.aws_sqs_queue.video-create-queue.url
+  #     "OTEL_SERVICE_NAME"                  = "video-receive-lambda"
+  #     "OTEL_EXPORTER_OTLP_ENDPOINT"        = "http://${data.aws_lb.nlb.dns_name}/alloy"
+  #     "OTEL_EXPORTER_OTLP_PROTOCOL"        = "http/protobuf"
+  #   }
+  # }
 
   environment {
     variables = {
       "SQS_QUEUE_URL"                      = data.aws_sqs_queue.video-create-queue.url
-      "OPENTELEMETRY_COLLECTOR_CONFIG_URI" = "/var/task/collector.yaml"
       "OTEL_SERVICE_NAME"                  = "video-receive-lambda"
       "OTEL_EXPORTER_OTLP_ENDPOINT"        = "http://${data.aws_lb.nlb.dns_name}/alloy"
       "OTEL_EXPORTER_OTLP_PROTOCOL"        = "http/protobuf"
-      "OTEL_LOGS_EXPORTER"                 = "otlp"
-      "OTEL_TRACES_EXPORTER"               = "otlp"
-      "OTEL_METRICS_EXPORTER"              = "none"
-      "OTEL_LOG_LEVEL"                     = "INFO"
-      "OTEL_PROPAGATORS"                   = "tracecontext"
       "AWS_LAMBDA_EXEC_WRAPPER"            = "/opt/otel-instrument"
+      # "OTEL_LOGS_EXPORTER"                 = "otlp"
+      # "OTEL_TRACES_EXPORTER"               = "otlp"
+      # "OTEL_METRICS_EXPORTER"              = "none"
+      # "OTEL_LOG_LEVEL"                     = "INFO"
+      # "OTEL_PROPAGATORS"                   = "tracecontext"
     }
   }
+
+  # environment {
+  #   variables = {
+  #     "AWS_LAMBDA_EXEC_WRAPPER"            = "/opt/otel-instrument"
+  #     "OPENTELEMETRY_COLLECTOR_CONFIG_URI" = "/var/task/collector.yaml"
+  #     "OTEL_EXPORTER_OTLP_ENDPOINT"        = "http://${data.aws_lb.nlb.dns_name}/alloy"
+  #     "OTEL_SERVICE_NAME"                  = "video-receive-lambda"
+  #     "SQS_QUEUE_URL"                      = data.aws_sqs_queue.video-create-queue.url
+  #   }
+  # }
 }
 
 resource "aws_lambda_permission" "allow_s3" {
