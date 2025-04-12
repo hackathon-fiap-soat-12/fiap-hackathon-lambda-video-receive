@@ -35,6 +35,7 @@ def test_sqs_queue_url_not_defined(mock_logger, fixture_event_from_video_file, f
 
 @patch('src.lambda_function.logger')
 @patch('src.lambda_function.sqs')
+@patch('src.lambda_function.s3')
 @patch.dict(os.environ, {'SQS_QUEUE_URL': 'https://sqs-url'})
 def test_raises_exception_when_sqs_send_message_fails(
         mock_sqs, mock_logger, fixture_event_from_video_file, fixture_mock_context
