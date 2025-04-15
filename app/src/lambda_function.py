@@ -6,8 +6,8 @@ from aws_lambda_powertools import Logger
 
 logger = Logger(service=os.getenv('OTEL_SERVICE_NAME', 'default_service_name'))
 
-sqs = boto3.client('sqs')
-s3 = boto3.client('s3', region="us-east-1")
+sqs = boto3.client('sqs', region_name='us-east-1')
+s3 = boto3.client('s3', region_name="us-east-1")
 
 
 @logger.inject_lambda_context
@@ -27,9 +27,16 @@ def lambda_handler(event, context):
                 'body': json.dumps('SQS Queue environment variable not set')
             }
 
-        object_head_data = s3.head_object(bucket=bucket, key=key)
-        object_metadata = object_head_data.get('Metadata')
-        file_id = object_metadata.get('x-amz-meta-id')
+        try:
+            object_head_data = s3.head_object(bucket=bucket, key=key)
+            object_metadata = object_head_data.get('Metadata')
+            file_id = object_metadata['x-amz-meta-id']
+        except KeyError:
+            logger.error('S3 Object without x-amz-meta-id Metadata')
+            return {
+                'statusCode': 500,
+                'body': json.dumps('S3 Object without x-amz-meta-id Metadata')
+            }
 
         message = {'id': file_id}
 
