@@ -37,9 +37,41 @@ def test_sqs_queue_url_not_defined(mock_logger, fixture_event_from_video_file, f
 @patch('src.lambda_function.sqs')
 @patch('src.lambda_function.s3')
 @patch.dict(os.environ, {'SQS_QUEUE_URL': 'https://sqs-url'})
-def test_raises_exception_when_sqs_send_message_fails(
-        mock_sqs, mock_logger, fixture_event_from_video_file, fixture_mock_context
+def test_raises_exception_when_s3_head_object_fails(
+        mock_s3, mock_sqs, mock_logger, fixture_event_from_video_file, fixture_mock_context
 ):
+    mock_s3.head_object.side_effect = Exception('fake exception message')
+
+    with pytest.raises(Exception):
+        response = lambda_handler(fixture_event_from_video_file, fixture_mock_context)
+
+    mock_logger.info.assert_any_call("Processing file", extra={"bucket": "fake_bucket", "key": "videos/fake_key"})
+
+
+@patch('src.lambda_function.logger')
+@patch('src.lambda_function.sqs')
+@patch('src.lambda_function.s3')
+@patch.dict(os.environ, {'SQS_QUEUE_URL': 'https://sqs-url'})
+def test_returns_500_when_s3_head_object_does_not_contain_id_metadata(
+        mock_s3, mock_sqs, mock_logger, fixture_event_from_video_file, fixture_mock_context
+):
+    mock_s3.head_object.return_value = {'Metadata': {'fake_metadata': 'fake_value'}}
+
+    response = lambda_handler(fixture_event_from_video_file, fixture_mock_context)
+    assert response['statusCode'] == 500
+    assert response['body'] == '"S3 Object without x-amz-meta-id Metadata"'
+
+    mock_logger.info.assert_any_call("Processing file", extra={"bucket": "fake_bucket", "key": "videos/fake_key"})
+
+
+@patch('src.lambda_function.logger')
+@patch('src.lambda_function.sqs')
+@patch('src.lambda_function.s3')
+@patch.dict(os.environ, {'SQS_QUEUE_URL': 'https://sqs-url'})
+def test_raises_exception_when_sqs_send_message_fails(
+        mock_s3, mock_sqs, mock_logger, fixture_event_from_video_file, fixture_mock_context
+):
+    mock_s3.head_object.return_value = {'Metadata': {'x-amz-meta-id': 'fake_id'}}
     mock_sqs.send_message.side_effect = Exception("fake exception message")
 
     with pytest.raises(Exception):
@@ -50,8 +82,10 @@ def test_raises_exception_when_sqs_send_message_fails(
 
 @patch('src.lambda_function.logger')
 @patch('src.lambda_function.sqs')
+@patch('src.lambda_function.s3')
 @patch.dict(os.environ, {'SQS_QUEUE_URL': 'https://sqs-url'})
-def test_send_message_successfully(mock_sqs, mock_logger, fixture_event_from_video_file, fixture_mock_context):
+def test_send_message_successfully(mock_s3, mock_sqs, mock_logger, fixture_event_from_video_file, fixture_mock_context):
+    mock_s3.head_object.return_value = {'Metadata': {'x-amz-meta-id': 'fake_id'}}
     mock_sqs.send_message.return_value = {"MessageId": "FakeValue"}
 
     response = lambda_handler(fixture_event_from_video_file, fixture_mock_context)
