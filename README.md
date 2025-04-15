@@ -16,9 +16,10 @@ Este repositório é responsável criar a Lambda do recebmento da mensagem do vi
 
 <div align="center">
 
-![AWSAPIGateway](https://img.shields.io/badge/Amazon%20API%20Gateway-FF4F8B.svg?style=for-the-badge&logo=Amazon-API-Gateway&logoColor=white)
+![AWSLAMBDA](https://img.shields.io/badge/AWS%20Lambda-FF9900.svg?style=for-the-badge&logo=AWS-Lambda&logoColor=white)
 ![GithubActions](https://img.shields.io/badge/GitHub%20Actions-2088FF.svg?style=for-the-badge&logo=GitHub-Actions&logoColor=white)
 ![Terraform](https://img.shields.io/badge/Terraform-7B42BC?style=for-the-badge&logo=terraform&logoColor=white)
+![Python](https://img.shields.io/badge/Python-3776AB.svg?style=for-the-badge&logo=Python&logoColor=white)
 
 </div>
 
@@ -28,6 +29,7 @@ Este repositório é responsável criar a Lambda do recebmento da mensagem do vi
 
 - **[Terraform](https://www.terraform.io/)**: Site oficial do Terraform.
 - **[AWS](https://aws.amazon.com/pt/)**: Site oficial da AWS.
+- **[Python](https://docs.python.org/pt-br/3/)**: Documentação oficial do Python.
 
 ## 🚀 Execução
 
