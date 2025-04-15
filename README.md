@@ -1,6 +1,6 @@
 <div align="center">
 
-# Hackathon - Lambda Video Receive
+# FIAP Hackathon - Lambda Video Receive
 
 ![GitHub Release Date](https://img.shields.io/badge/Release%20Date-Fevereiro%202025-yellowgreen)
 ![](https://img.shields.io/badge/Status-Em%20Desenvolvimento-yellowgreen)
