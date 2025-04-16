@@ -28,9 +28,9 @@ def lambda_handler(event, context):
             }
 
         try:
-            object_head_data = s3.head_object(bucket=bucket, key=key)
+            object_head_data = s3.head_object(Bucket=bucket, Key=key)
             object_metadata = object_head_data.get('Metadata')
-            file_id = object_metadata['x-amz-meta-id']
+            file_id = object_metadata['id']
         except KeyError:
             logger.error('S3 Object without x-amz-meta-id Metadata')
             return {
