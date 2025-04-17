@@ -3,6 +3,7 @@ import os
 import boto3
 import json
 from aws_lambda_powertools import Logger
+from urllib.parse import unquote_plus
 
 logger = Logger(service=os.getenv('OTEL_SERVICE_NAME', 'default_service_name'))
 
@@ -13,7 +14,8 @@ s3 = boto3.client('s3', region_name="us-east-1")
 @logger.inject_lambda_context
 def lambda_handler(event, context):
     bucket = event['Records'][0]['s3']['bucket']['name']
-    key = event['Records'][0]['s3']['object']['key']
+    raw_key = event['Records'][0]['s3']['object']['key']
+    key = unquote_plus(raw_key)
 
     logger.info("Processing file", extra={"bucket": bucket, "key": key})
 
@@ -28,6 +30,9 @@ def lambda_handler(event, context):
             }
 
         try:
+            print(f"bucket: {str(bucket)}")
+            print(f"key: {str(key)}")
+
             object_head_data = s3.head_object(Bucket=bucket, Key=key)
             object_metadata = object_head_data.get('Metadata')
             file_id = object_metadata['id']
